@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutterimagecompress (0.0.1):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutterimagecompress (from `.symlinks/plugins/flutterimagecompress/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutterimagecompress:
+    :path: ".symlinks/plugins/flutterimagecompress/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
+  flutterimagecompress: e9b53f734f31c2ab03cc3a0554505c6482a5b25e
+
+PODFILE CHECKSUM: f32fb4e7c14f8b3ca19a369d7be425dd9241af27
+
+COCOAPODS: 1.9.1

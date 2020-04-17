@@ -1,0 +1,171 @@
+package com.flappygo.flutterimagecompress;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.os.Handler;
+import android.os.Message;
+
+import androidx.annotation.NonNull;
+
+import com.flappygo.flutterimagecompress.tools.ImageReadTool;
+import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
+
+import java.io.File;
+import java.io.FileOutputStream;
+
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry.Registrar;
+
+/**
+ * FlutterimagecompressPlugin
+ */
+public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHandler {
+    /// The MethodChannel that will the communication between Flutter and native Android
+    ///
+    /// This local reference serves to register the plugin with the Flutter Engine and unregister it
+    /// when the Flutter Engine is detached from the Activity
+    private MethodChannel channel;
+    //上下文
+    private Context context;
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutterimagecompress");
+        channel.setMethodCallHandler(this);
+        this.context = flutterPluginBinding.getApplicationContext();
+    }
+
+    // This static function is optional and equivalent to onAttachedToEngine. It supports the old
+    // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
+    // plugin registration via this function while apps migrate to use the new Android APIs
+    // post-flutter-1.12 via https://flutter.dev/go/android-project-migration.
+    //
+    // It is encouraged to share logic between onAttachedToEngine and registerWith to keep
+    // them functionally equivalent. Only one of onAttachedToEngine or registerWith will be called
+    // depending on the user's project. onAttachedToEngine or registerWith must both be defined
+    // in the same class.
+    public static void registerWith(Registrar registrar) {
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutterimagecompress");
+        FlutterimagecompressPlugin plugin = new FlutterimagecompressPlugin();
+        //赋值上下文
+        plugin.context = registrar.activity().getApplicationContext();
+        channel.setMethodCallHandler(plugin);
+    }
+
+    @Override
+    public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
+        //压缩图片
+        if (call.method.equals("compressImage")) {
+            //路径
+            final String path = call.argument("path");
+            //压缩图片
+            final String savePath = call.argument("savePath");
+            //数据
+            final String quality = call.argument("quality");
+            //宽度
+            final String maxWidth = call.argument("maxWidth");
+            //高度
+            final String maxHeight = call.argument("maxHeight");
+            //handler
+            final Handler handler = new Handler() {
+                public void handleMessage(Message message) {
+                    if (message.what == 1) {
+                        result.success(message.obj);
+                    } else {
+                        result.success(null);
+                    }
+                }
+            };
+            new Thread() {
+                public void run() {
+                    //然后保存来着
+                    try {
+                        //读取图像
+                        Bitmap bitmap = ImageReadTool.readFileBitmap(path,
+                                new LXImageReadOption(
+                                        Integer.parseInt(maxWidth),
+                                        Integer.parseInt(maxHeight),
+                                        false));
+
+                        //保存的地址
+                        String truePath = savePath;
+                        //保存的地址没有斜杠，补足斜杠
+                        if (!truePath.endsWith("/")) {
+                            truePath = truePath + "/";
+                        }
+                        //创建文件夹
+                        File savePathFile = new File(truePath);
+                        //如果不存在
+                        if (!savePathFile.exists()) {
+                            savePathFile.mkdirs();
+                        }
+                        //如果不是真实的地址
+                        if (!savePathFile.isDirectory()) {
+                            truePath = getDefaultDirPath(context);
+                            savePathFile = new File(truePath);
+                            if (!savePathFile.exists()) {
+                                savePathFile.mkdirs();
+                            }
+                        }
+                        //保存
+                        String fileSaveName = System.currentTimeMillis() + ".jpg";
+                        //图像名称
+                        String retPath = truePath + fileSaveName;
+                        //返回地址
+                        File file = new File(truePath, fileSaveName);
+                        //读取
+                        FileOutputStream out = new FileOutputStream(file);
+                        //压缩
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(quality), out);
+                        //刷入
+                        out.flush();
+                        //关闭
+                        out.close();
+                        //成功
+                        Message message = handler.obtainMessage(1, retPath);
+                        //发送消息
+                        handler.sendMessageDelayed(message, 200);
+                    } catch (Exception e) {
+                        //失败
+                        Message message = handler.obtainMessage(0, null);
+                        handler.sendMessage(message);
+                    }
+                }
+            }.start();
+        } else if (call.method.equals("getDefaultDirPath")) {
+            //返回默认地址
+            result.success(getDefaultDirPath(context));
+        } else {
+            result.notImplemented();
+        }
+    }
+
+    /*********
+     * 获取默认的保存图片地址
+     *
+     * @param context 上下文
+     * @return
+     */
+    public static String getDefaultDirPath(Context context) {
+        String cachePath = null;
+        try {
+            if (context.getExternalCacheDir() != null) {
+                cachePath = context.getExternalCacheDir().getPath() + "/imagecache/";
+            } else if (context.getCacheDir() != null) {
+                cachePath = context.getCacheDir().getPath() + "/imagecache/";
+            }
+        } catch (Exception e) {
+            cachePath = "/";
+        }
+        return cachePath;
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        channel.setMethodCallHandler(null);
+    }
+}
