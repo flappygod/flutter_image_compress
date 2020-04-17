@@ -93,6 +93,10 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
 
                         //保存的地址
                         String truePath = savePath;
+                        //空的，默认
+                        if (truePath == null || truePath == "") {
+                            truePath = getDefaultDirPath(context);
+                        }
                         //保存的地址没有斜杠，补足斜杠
                         if (!truePath.endsWith("/")) {
                             truePath = truePath + "/";

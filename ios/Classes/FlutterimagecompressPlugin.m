@@ -39,7 +39,10 @@
         UIImage* trueImage=[UIImage imageWithData:imageData];
         //数据
         long data=[[NSDate date] timeIntervalSince1970]*1000;
-        
+        //默认地址
+        if(savePath==nil||[savePath isEqualToString:@""]){
+            savePath=[self getDefaultPath];
+        }
         //地址必须以/结尾
         if(![savePath hasSuffix:@"/"]){
             savePath=[NSString stringWithFormat:@"%@/",savePath];
