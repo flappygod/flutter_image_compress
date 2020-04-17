@@ -2,6 +2,21 @@
 
 A new Flutter plugin.
 
+
+How to use?
+
+Flutterimagecompress.compressImage(path,saveDictonary,quality,maxWidth,maxHeight);
+
+or 
+
+Flutterimagecompress.compressImage(path,quality,maxWidth,maxHeight);
+
+which will save to path
+
+Flutterimagecompress.getDefaultDirPath();
+
+
+
 ## Getting Started
 
 This project is a starting point for a Flutter
