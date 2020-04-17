@@ -13,7 +13,7 @@ Flutterimagecompress.compressImage(path,quality,maxWidth,maxHeight);
 
 which will save to path
 
-Flutterimagecompress.getDefaultDirPath();
+Flutterimagecompress.getCompressDefaultPath();
 
 
 
