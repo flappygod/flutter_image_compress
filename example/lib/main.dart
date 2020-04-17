@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion=await Flutterimagecompress.getDefaultDirPath();
+      platformVersion=await Flutterimagecompress.getCompressDefaultPath();
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

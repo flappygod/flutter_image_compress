@@ -41,7 +41,7 @@
         long data=[[NSDate date] timeIntervalSince1970]*1000;
         //默认地址
         if(savePath==nil||[savePath isEqualToString:@""]){
-            savePath=[self getDefaultPath];
+            savePath=[self getCompressDefaultPath];
         }
         //地址必须以/结尾
         if(![savePath hasSuffix:@"/"]){
@@ -57,7 +57,7 @@
             //但是不是文件夹
             if(!isDir){
                 //使用我们自己的默认地址
-                savePath=[self getDefaultPath];
+                savePath=[self getCompressDefaultPath];
                 [fileManager createDirectoryAtPath:savePath
                        withIntermediateDirectories:YES
                                         attributes:nil
@@ -84,9 +84,15 @@
         }else{
             result(nil);
         }
-    } else if([@"getDefaultDirPath" isEqualToString:call.method]){
+    }
+    //图像缓存地址
+    else if([@"getCompressDefaultPath" isEqualToString:call.method]){
+        result([self getCompressDefaultPath]);
+    }
+    //默认缓存地址
+    else if([@"getCacheDefaultPath" isEqualToString:call.method]){
         //返回默认地址
-        result([self getDefaultPath]);
+        result([self getCacheDefaultPath]);
     }else {
         //返回
         result(FlutterMethodNotImplemented);
@@ -154,12 +160,18 @@
 
 
 //获取缓存地址
--(NSString*)getDefaultPath{
+-(NSString*)getCompressDefaultPath{
     //获取Caches目录路径
     NSArray * cachesPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
     NSString * cachesDirectory = [cachesPaths objectAtIndex:0];
     return [NSString stringWithFormat:@"%@/imageCache/",cachesDirectory];
 }
 
+-(NSString*)getCacheDefaultPath{
+    //获取Caches目录路径
+    NSArray * cachesPaths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString * cachesDirectory = [cachesPaths objectAtIndex:0];
+    return [NSString stringWithFormat:@"%@/",cachesDirectory];
+}
 
 @end

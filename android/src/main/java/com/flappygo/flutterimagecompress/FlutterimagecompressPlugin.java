@@ -95,7 +95,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         String truePath = savePath;
                         //空的，默认
                         if (truePath == null || truePath == "") {
-                            truePath = getDefaultDirPath(context);
+                            truePath = getCompressDefaultPath(context);
                         }
                         //保存的地址没有斜杠，补足斜杠
                         if (!truePath.endsWith("/")) {
@@ -109,7 +109,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         }
                         //如果不是真实的地址
                         if (!savePathFile.isDirectory()) {
-                            truePath = getDefaultDirPath(context);
+                            truePath = getCompressDefaultPath(context);
                             savePathFile = new File(truePath);
                             if (!savePathFile.exists()) {
                                 savePathFile.mkdirs();
@@ -140,12 +140,24 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                     }
                 }
             }.start();
-        } else if (call.method.equals("getDefaultDirPath")) {
-            //返回默认地址
-            result.success(getDefaultDirPath(context));
+        }
+        //返回默认压缩地址
+        else if (call.method.equals("getCompressDefaultPath")) {
+            //获取压缩缓存地址
+            result.success(getCompressDefaultPath(context));
+        }
+        //返回默认的缓存地址
+        else if (call.method.equals("getCacheDefaultPath")) {
+            //默认缓存地址
+            result.success(getCacheDefaultPath(context));
         } else {
             result.notImplemented();
         }
+    }
+
+    public static String getCompressDefaultPath(Context context) {
+        String compressPath = getCacheDefaultPath(context) + "imagecache/";
+        return compressPath;
     }
 
     /*********
@@ -154,13 +166,13 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
      * @param context 上下文
      * @return
      */
-    public static String getDefaultDirPath(Context context) {
+    public static String getCacheDefaultPath(Context context) {
         String cachePath = null;
         try {
             if (context.getExternalCacheDir() != null) {
-                cachePath = context.getExternalCacheDir().getPath() + "/imagecache/";
+                cachePath = context.getExternalCacheDir().getPath() + "/";
             } else if (context.getCacheDir() != null) {
-                cachePath = context.getCacheDir().getPath() + "/imagecache/";
+                cachePath = context.getCacheDir().getPath() + "/";
             }
         } catch (Exception e) {
             cachePath = "/";
