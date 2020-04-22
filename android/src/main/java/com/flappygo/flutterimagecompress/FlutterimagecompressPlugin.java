@@ -12,6 +12,7 @@ import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.UUID;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -116,11 +117,11 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                             }
                         }
                         //保存
-                        String fileSaveName = System.currentTimeMillis() + ".jpg";
+                        String fileSaveName = UUID.randomUUID().toString().replaceAll("-", "") + ".jpg";
                         //图像名称
                         String retPath = truePath + fileSaveName;
                         //返回地址
-                        File file = new File(truePath, fileSaveName);
+                        File file = new File(retPath);
                         //读取
                         FileOutputStream out = new FileOutputStream(file);
                         //压缩
