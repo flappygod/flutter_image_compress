@@ -61,9 +61,9 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
         //压缩图片
         if (call.method.equals("compressImage")) {
-            //路径
+            //系统图片路径
             final String path = call.argument("path");
-            //压缩图片
+            //压缩后保存的路径
             final String savePath = call.argument("savePath");
             //数据
             final String quality = call.argument("quality");
