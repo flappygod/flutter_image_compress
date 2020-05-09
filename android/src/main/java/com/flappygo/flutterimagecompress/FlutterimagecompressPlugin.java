@@ -37,7 +37,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutterimagecompress");
         channel.setMethodCallHandler(this);
-        this.context = flutterPluginBinding.getApplicationContext();
+        context = flutterPluginBinding.getApplicationContext();
     }
 
     // This static function is optional and equivalent to onAttachedToEngine. It supports the old
@@ -51,9 +51,11 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     // in the same class.
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutterimagecompress");
+        //创建插件
         FlutterimagecompressPlugin plugin = new FlutterimagecompressPlugin();
         //赋值上下文
         plugin.context = registrar.activity().getApplicationContext();
+        //设置handler
         channel.setMethodCallHandler(plugin);
     }
 
