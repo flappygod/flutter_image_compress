@@ -93,7 +93,65 @@
     else if([@"getCacheDefaultPath" isEqualToString:call.method]){
         //返回默认地址
         result([self getCacheDefaultPath]);
-    }else {
+    }
+    //保存图片到本地
+    else if([@"saveImage" isEqualToString:call.method]){
+        //图片数据
+        FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
+        //图片名称
+        NSString* imageName=(NSString*)call.arguments[@"imageName"];
+        //保存地址
+        NSString* savePath=(NSString*)call.arguments[@"savePath"];
+        //解析真实图片
+        UIImage *trueImage  = [UIImage imageWithData:imageData.data];
+        //默认地址
+        if(savePath==nil||[savePath isEqualToString:@""]){
+            savePath=[self getCompressDefaultPath];
+        }
+        //地址必须以/结尾
+        if(![savePath hasSuffix:@"/"]){
+            savePath=[NSString stringWithFormat:@"%@/",savePath];
+        }
+        //判断文件夹是否存在
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        BOOL isDir = FALSE;
+        BOOL isDirExist = [fileManager fileExistsAtPath:savePath
+                                            isDirectory:&isDir];
+        //存在
+        if(isDirExist){
+            //但是不是文件夹
+            if(!isDir){
+                //使用我们自己的默认地址
+                savePath=[self getCompressDefaultPath];
+                [fileManager createDirectoryAtPath:savePath
+                       withIntermediateDirectories:YES
+                                        attributes:nil
+                                             error:nil];
+                
+            }
+        }else{
+            //不存在创建
+            [fileManager createDirectoryAtPath:savePath
+                   withIntermediateDirectories:YES
+                                    attributes:nil
+                                         error:nil];
+        }
+        
+        //真实地址
+        NSString* truePath=[NSString stringWithFormat:@"%@%@",savePath,imageName];
+        
+        //保存图片到指定位置
+        BOOL flag=[self saveToDocument:trueImage
+                          withFilePath:truePath];
+        //标志
+        if(flag){
+            result(truePath);
+        }else{
+            result(nil);
+        }
+        
+    }
+    else {
         //返回
         result(FlutterMethodNotImplemented);
     }

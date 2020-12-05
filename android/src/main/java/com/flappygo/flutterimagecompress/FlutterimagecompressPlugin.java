@@ -153,6 +153,78 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         else if (call.method.equals("getCacheDefaultPath")) {
             //默认缓存地址
             result.success(getCacheDefaultPath(context));
+        }
+        //保存图片到本地
+        else if (call.method.equals("saveImage")) {
+            final byte[] imageData = call.argument("imageData");
+            //保存的路径
+            final String savePath = call.argument("savePath");
+            //保存的名称
+            final String imageName = call.argument("imageName");
+            //handler
+            final Handler handler = new Handler() {
+                public void handleMessage(Message message) {
+                    if (message.what == 1) {
+                        result.success(message.obj);
+                    } else {
+                        result.success(null);
+                    }
+                }
+            };
+            new Thread() {
+                public void run() {
+                    //然后保存来着
+                    try {
+
+                        //保存的地址
+                        String truePath = savePath;
+                        //空的，默认
+                        if (truePath == null || truePath.equals("")) {
+                            truePath = getCompressDefaultPath(context);
+                        }
+                        //保存的地址没有斜杠，补足斜杠
+                        if (!truePath.endsWith("/")) {
+                            truePath = truePath + "/";
+                        }
+                        //创建文件夹
+                        File savePathFile = new File(truePath);
+                        //如果不存在
+                        if (!savePathFile.exists()) {
+                            savePathFile.mkdirs();
+                        }
+                        //如果不是真实的地址
+                        if (!savePathFile.isDirectory()) {
+                            truePath = getCompressDefaultPath(context);
+                            savePathFile = new File(truePath);
+                            if (!savePathFile.exists()) {
+                                savePathFile.mkdirs();
+                            }
+                        }
+                        //保存
+                        String fileSaveName = imageName;
+                        //图像名称
+                        String retPath = truePath + fileSaveName;
+                        //返回地址
+                        File file = new File(retPath);
+                        //读取
+                        FileOutputStream out = new FileOutputStream(file);
+                        //写入数据
+                        out.write(imageData);
+                        //刷入
+                        out.flush();
+                        //关闭
+                        out.close();
+                        //成功
+                        Message message = handler.obtainMessage(1, retPath);
+                        //发送消息
+                        handler.sendMessageDelayed(message, 200);
+                    } catch (Exception e) {
+                        //失败
+                        Message message = handler.obtainMessage(0, null);
+                        handler.sendMessage(message);
+                    }
+                }
+            }.start();
         } else {
             result.notImplemented();
         }
