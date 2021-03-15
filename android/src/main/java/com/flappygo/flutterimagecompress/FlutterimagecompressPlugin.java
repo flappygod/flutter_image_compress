@@ -1,9 +1,15 @@
 package com.flappygo.flutterimagecompress;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 
@@ -79,7 +85,8 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                     if (message.what == 1) {
                         result.success(message.obj);
                     } else {
-                        result.success(null);
+                        Exception ex = (Exception) message.obj;
+                        result.error("ERROR", ex.getMessage(), null);
                     }
                 }
             };
@@ -161,13 +168,14 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
             final String savePath = call.argument("savePath");
             //保存的名称
             final String imageName = call.argument("imageName");
-            //handler
+            //Handler
             final Handler handler = new Handler() {
                 public void handleMessage(Message message) {
                     if (message.what == 1) {
                         result.success(message.obj);
                     } else {
-                        result.success(null);
+                        Exception ex = (Exception) message.obj;
+                        result.error("ERROR", ex.getMessage(), null);
                     }
                 }
             };
@@ -175,7 +183,6 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                 public void run() {
                     //然后保存来着
                     try {
-
                         //保存的地址
                         String truePath = savePath;
                         //空的，默认
@@ -218,18 +225,36 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         Message message = handler.obtainMessage(1, retPath);
                         //发送消息
                         handler.sendMessageDelayed(message, 200);
-                    } catch (Exception e) {
+                    } catch (Exception exception) {
                         //失败
-                        Message message = handler.obtainMessage(0, null);
+                        Message message = handler.obtainMessage(0, exception);
                         handler.sendMessage(message);
                     }
                 }
             }.start();
+        }
+        //保存图片到相册
+        else if (call.method.equals("saveImageToPhotos")) {
+            //保存图片到相册
+            try {
+                //数据
+                final byte[] imageData = call.argument("imageData");
+                //转换为bitmap
+                Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                //保存到相册
+                MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
+                //默认缓存地址
+                result.success(null);
+            } catch (Exception ex) {
+                result.error("ERROR", ex.getMessage(), null);
+            }
         } else {
             result.notImplemented();
         }
     }
 
+
+    //获取CompressPath
     public static String getCompressDefaultPath(Context context) {
         String compressPath = getCacheDefaultPath(context) + "imagecache/";
         return compressPath;
@@ -237,22 +262,25 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
 
     /*********
      * 获取默认的保存图片地址
-     *
      * @param context 上下文
      * @return
      */
     public static String getCacheDefaultPath(Context context) {
-        String cachePath = null;
+        //默认根目录
+        String cachePath = "/";
         try {
+            //取得缓存目录
             if (context.getExternalCacheDir() != null) {
                 cachePath = context.getExternalCacheDir().getPath() + "/";
-            } else if (context.getCacheDir() != null) {
+            }
+            //没取到再取
+            else if (context.getCacheDir() != null) {
                 cachePath = context.getCacheDir().getPath() + "/";
             }
+            return cachePath;
         } catch (Exception e) {
-            cachePath = "/";
+            return cachePath;
         }
-        return cachePath;
     }
 
     @Override
