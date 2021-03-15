@@ -61,4 +61,16 @@ class Flutterimagecompress {
       rethrow;
     }
   }
+
+  //保存图片到相册
+  static Future<bool> saveImageToPhotos(Uint8List imageData) async {
+    try {
+      await _channel.invokeMethod('saveImageToPhotos', {
+        "imageData": imageData,
+      });
+      return true;
+    } on PlatformException {
+      rethrow;
+    }
+  }
 }

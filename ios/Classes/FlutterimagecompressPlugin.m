@@ -76,13 +76,13 @@
         NSString* truePath=[NSString stringWithFormat:@"%@%ld%@",savePath,data,@".jpg"];
         
         //保存图片到指定位置
-        BOOL flag=[self saveToDocument:trueImage
-                          withFilePath:truePath];
-        //标志
-        if(flag){
+        NSException* exception=[self saveToDocument:trueImage
+                                       withFilePath:truePath];
+        //成功
+        if(exception==nil){
             result(truePath);
         }else{
-            result(nil);
+            result([FlutterError  errorWithCode:exception.name message:exception.reason details:nil]);
         }
     }
     //图像缓存地址
@@ -141,15 +141,26 @@
         NSString* truePath=[NSString stringWithFormat:@"%@%@",savePath,imageName];
         
         //保存图片到指定位置
-        BOOL flag=[self saveToDocument:trueImage
-                          withFilePath:truePath];
+        NSException* exception=[self saveToDocument:trueImage
+                                       withFilePath:truePath];
         //标志
-        if(flag){
+        if(exception==nil){
             result(truePath);
         }else{
-            result(nil);
+            result([FlutterError  errorWithCode:exception.name message:exception.reason details:nil]);
         }
-        
+    }
+    
+    //保存图片到相册
+    else if ([@"saveImageToPhotos" isEqualToString:call.method]) {
+        //图片数据
+        FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
+        //真实图片
+        UIImage *trueImage  = [UIImage imageWithData:imageData.data];
+        //写入到相册
+        UIImageWriteToSavedPhotosAlbum(trueImage, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
+        //成功
+        result(nil);
     }
     else {
         //返回
@@ -184,12 +195,16 @@
 }
 
 //将选取的图片保存到目录文件夹下
--(BOOL)saveToDocument:(UIImage *) image
-         withFilePath:(NSString *) filePath{
+-(NSException*)saveToDocument:(UIImage *) image
+                 withFilePath:(NSString *) filePath{
     
-    //返回
+    //返回错误
     if (image == nil) {
-        return NO;
+        return [NSException exceptionWithName:@"ERROR" reason:@"image data is nil" userInfo:nil];
+    }
+    //返回错误
+    if (filePath == nil) {
+        return [NSException exceptionWithName:@"ERROR" reason:@"image path is nil" userInfo:nil];
     }
     @try {
         NSData *imageData = nil;
@@ -202,18 +217,18 @@
             //返回JPG格式的图片数据，第二个参数为压缩质量：0:best 1:lost
             imageData = UIImageJPEGRepresentation(image, 0);
         }
+        //保存失败
         if (imageData == nil || [imageData length] <= 0) {
-            return NO;
+            return [NSException exceptionWithName:@"ERROR" reason:@"image compress error" userInfo:nil];
         }
         //将图片写入指定路径
         [imageData writeToFile:filePath atomically:YES];
-        return  YES;
+        //没有错误代表成功
+        return  nil;
     }
     @catch (NSException *exception) {
-        NSLog(@"保存图片失败");
+        return  exception;
     }
-    return NO;
-    
 }
 
 
@@ -231,5 +246,18 @@
     NSString * cachesDirectory = [cachesPaths objectAtIndex:0];
     return [NSString stringWithFormat:@"%@/",cachesDirectory];
 }
+
+//指定回调方法
+- (void)image: (UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)contextInfo{
+    if (image == nil) {
+        return;
+    }
+    NSString *msg = @"保存图片成功";
+    if(error != NULL){
+        msg = @"保存图片失败" ;
+    }
+    NSLog(@"🌹🌹🌹🌹%@",msg);
+}
+
 
 @end
