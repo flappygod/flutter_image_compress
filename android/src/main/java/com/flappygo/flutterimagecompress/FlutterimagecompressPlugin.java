@@ -129,7 +129,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         registrar.addRequestPermissionsResultListener(plugin);
         plugin.context = registrar.activity();
         plugin.activity = registrar.activity();
-        plugin.channel = new MethodChannel(registrar.messenger(), "flutterflappytools");
+        plugin.channel = new MethodChannel(registrar.messenger(), "flutterimagecompress");
         plugin.channel.setMethodCallHandler(plugin);
     }
 
