@@ -167,7 +167,7 @@
                 //成功
                 result(nil);
             }else{
-                result(nil);
+                result([FlutterError  errorWithCode:@"没有获取到相册权限" message:@"没有获取到相册权限" details:nil]);
             }
         }];
         
