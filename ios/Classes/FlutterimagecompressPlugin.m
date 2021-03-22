@@ -1,4 +1,5 @@
 #import "FlutterimagecompressPlugin.h"
+#import <Photos/Photos.h>
 
 @implementation FlutterimagecompressPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
@@ -153,20 +154,74 @@
     
     //保存图片到相册
     else if ([@"saveImageToPhotos" isEqualToString:call.method]) {
-        //图片数据
-        FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
-        //真实图片
-        UIImage *trueImage  = [UIImage imageWithData:imageData.data];
-        //写入到相册
-        UIImageWriteToSavedPhotosAlbum(trueImage, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
-        //成功
-        result(nil);
+        
+        //判断
+        [self isCanVisitPhotoLibrary:^(BOOL status){
+            if(status){
+                //图片数据
+                FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
+                //真实图片
+                UIImage *trueImage  = [UIImage imageWithData:imageData.data];
+                //写入到相册
+                UIImageWriteToSavedPhotosAlbum(trueImage, self, @selector(image:didFinishSavingWithError:contextInfo:), NULL);
+                //成功
+                result(nil);
+            }else{
+                result(nil);
+            }
+        }];
+        
     }
     else {
         //返回
         result(FlutterMethodNotImplemented);
     }
 }
+
+
+
+//检查权限
+//MARK:相册权限检测
+- (void)isCanVisitPhotoLibrary:(void(^)(BOOL))result {
+    PHAuthorizationStatus status = [PHPhotoLibrary authorizationStatus];
+    //已经授权
+    if (status == PHAuthorizationStatusAuthorized) {
+        result(YES);
+        return;
+    }
+    //没有授权
+    else{
+        if (@available(iOS 14, *)) {
+            // 回调是在子线程的
+            [PHPhotoLibrary requestAuthorizationForAccessLevel:PHAccessLevelReadWrite
+                                                       handler:^(PHAuthorizationStatus status) {
+                NSLog(@"%@",[NSThread currentThread]);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (status != PHAuthorizationStatusAuthorized) {
+                        NSLog(@"未开启相册权限,请到设置中开启");
+                        result(NO);
+                        return ;
+                    }
+                    result(YES);
+                });
+            }];
+        } else {
+            // 回调是在子线程的
+            [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                NSLog(@"%@",[NSThread currentThread]);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (status != PHAuthorizationStatusAuthorized) {
+                        NSLog(@"未开启相册权限,请到设置中开启");
+                        result(NO);
+                        return ;
+                    }
+                    result(YES);
+                });
+            }];
+        }
+    }
+}
+
 
 
 //改变图片
