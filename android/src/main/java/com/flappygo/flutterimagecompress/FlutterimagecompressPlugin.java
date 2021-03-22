@@ -1,9 +1,12 @@
 package com.flappygo.flutterimagecompress;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -12,7 +15,10 @@ import android.os.Message;
 import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import com.flappygo.flutterimagecompress.Interface.PermissionListener;
 import com.flappygo.flutterimagecompress.tools.ImageReadTool;
 import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
 
@@ -21,16 +27,23 @@ import java.io.FileOutputStream;
 import java.util.UUID;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /**
  * FlutterimagecompressPlugin
  */
-public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHandler {
+public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.RequestPermissionsResultListener {
+
+    //请求
+    private final int RequestPermissionCode = 1;
+
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
@@ -39,12 +52,62 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     //上下文
     private Context context;
 
+
+    //activity
+    private Activity activity;
+    //binding
+    private ActivityPluginBinding activityPluginBinding;
+    //监听
+    private PermissionListener permissionListener;
+
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "flutterimagecompress");
-        context = flutterPluginBinding.getApplicationContext();
+        final MethodChannel channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutterflappytools");
+        this.context = flutterPluginBinding.getApplicationContext();
         channel.setMethodCallHandler(this);
     }
+
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        activity = null;
+        context = null;
+    }
+
+    @Override
+    public void onAttachedToActivity(ActivityPluginBinding binding) {
+        //保存activity
+        activity = binding.getActivity();
+        //保存binding
+        activityPluginBinding = binding;
+        //添加监听
+        binding.addRequestPermissionsResultListener(this);
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
+        //保存activity
+        activity = binding.getActivity();
+        //保存binding
+        activityPluginBinding = binding;
+        //添加监听
+        binding.addRequestPermissionsResultListener(this);
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+        //移除监听
+        activityPluginBinding.removeRequestPermissionsResultListener(this);
+        activity = null;
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
+        //移除监听
+        activityPluginBinding.removeRequestPermissionsResultListener(this);
+        activity = null;
+    }
+
 
     // This static function is optional and equivalent to onAttachedToEngine. It supports the old
     // pre-Flutter-1.12 Android projects. You are encouraged to continue supporting
@@ -56,17 +119,16 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     // depending on the user's project. onAttachedToEngine or registerWith must both be defined
     // in the same class.
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutterimagecompress");
-        //创建插件
+        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutterflappytools");
         FlutterimagecompressPlugin plugin = new FlutterimagecompressPlugin();
-        //赋值上下文
-        plugin.context = registrar.activity().getApplicationContext();
-        //设置handler
+        plugin.context = registrar.activity();
+        plugin.activity = registrar.activity();
         channel.setMethodCallHandler(plugin);
     }
 
+
     @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull final Result result) {
+    public void onMethodCall(@NonNull final MethodCall call, @NonNull final Result result) {
         //压缩图片
         if (call.method.equals("compressImage")) {
             //系统图片路径
@@ -235,24 +297,44 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         }
         //保存图片到相册
         else if (call.method.equals("saveImageToPhotos")) {
-            //保存图片到相册
-            try {
-                //数据
-                final byte[] imageData = call.argument("imageData");
-                //转换为bitmap
-                Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                //保存到相册
-                MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
-                //默认缓存地址
-                result.success(null);
-            } catch (Exception ex) {
-                result.error("ERROR", ex.getMessage(), null);
-            }
+            //先检查权限
+            checkPermission(new PermissionListener() {
+                @Override
+                public void result(boolean flag) {
+                    //保存图片到相册
+                    try {
+                        //数据
+                        final byte[] imageData = call.argument("imageData");
+                        //转换为bitmap
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                        //保存到相册
+                        MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
+                        //默认缓存地址
+                        result.success(null);
+                    } catch (Exception ex) {
+                        result.error("ERROR", ex.getMessage(), null);
+                    }
+                }
+            });
+
         } else {
             result.notImplemented();
         }
     }
 
+    //检查权限
+    private void checkPermission(PermissionListener listener) {
+        int hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        //未获取权限，请求权限
+        if (hasPermission == PackageManager.PERMISSION_GRANTED) {
+            listener.result(true);
+        }
+        //未获取权限，请求权限
+        else {
+            permissionListener = listener;
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, RequestPermissionCode);
+        }
+    }
 
     //获取CompressPath
     public static String getCompressDefaultPath(Context context) {
@@ -284,7 +366,22 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     }
 
     @Override
-    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-        channel.setMethodCallHandler(null);
+    public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == RequestPermissionCode) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //用户同意了权限申请
+                if (permissionListener != null) {
+                    permissionListener.result(true);
+                    permissionListener = null;
+                }
+            } else {
+                //用户拒绝了权限申请，建议向用户解释权限用途
+                if (permissionListener != null) {
+                    permissionListener.result(false);
+                    permissionListener = null;
+                }
+            }
+        }
+        return true;
     }
 }
