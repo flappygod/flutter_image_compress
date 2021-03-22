@@ -70,42 +70,48 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        channel.setMethodCallHandler(null);
         activity = null;
         context = null;
     }
 
     @Override
-    public void onAttachedToActivity(ActivityPluginBinding binding) {
-        //保存activity
-        activity = binding.getActivity();
-        //保存binding
-        activityPluginBinding = binding;
-        //添加监听
-        binding.addRequestPermissionsResultListener(this);
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        addBinding(binding);
     }
 
     @Override
-    public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
-        //保存activity
-        activity = binding.getActivity();
-        //保存binding
-        activityPluginBinding = binding;
-        //添加监听
-        binding.addRequestPermissionsResultListener(this);
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        addBinding(binding);
     }
 
     @Override
     public void onDetachedFromActivityForConfigChanges() {
-        //移除监听
-        activityPluginBinding.removeRequestPermissionsResultListener(this);
-        activity = null;
+
     }
 
     @Override
     public void onDetachedFromActivity() {
-        //移除监听
-        activityPluginBinding.removeRequestPermissionsResultListener(this);
+        removeBinding();
+    }
+
+    //绑定关系
+    private void addBinding(ActivityPluginBinding binding) {
+        if (activityPluginBinding != null) {
+            activityPluginBinding.removeRequestPermissionsResultListener(this);
+        }
+        activity = binding.getActivity();
+        activityPluginBinding = binding;
+        activityPluginBinding.addRequestPermissionsResultListener(this);
+    }
+
+    //移除关系
+    private void removeBinding() {
+        if (activityPluginBinding != null) {
+            activityPluginBinding.removeRequestPermissionsResultListener(this);
+        }
         activity = null;
+        activityPluginBinding = null;
     }
 
 
@@ -119,11 +125,12 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     // depending on the user's project. onAttachedToEngine or registerWith must both be defined
     // in the same class.
     public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "flutterflappytools");
         FlutterimagecompressPlugin plugin = new FlutterimagecompressPlugin();
+        registrar.addRequestPermissionsResultListener(plugin);
         plugin.context = registrar.activity();
         plugin.activity = registrar.activity();
-        channel.setMethodCallHandler(plugin);
+        plugin.channel = new MethodChannel(registrar.messenger(), "flutterflappytools");
+        plugin.channel.setMethodCallHandler(plugin);
     }
 
 
@@ -382,6 +389,6 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                 }
             }
         }
-        return true;
+        return false;
     }
 }
