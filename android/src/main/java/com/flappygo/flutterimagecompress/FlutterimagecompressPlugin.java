@@ -24,6 +24,7 @@ import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Random;
 import java.util.UUID;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -154,8 +155,10 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                     if (message.what == 1) {
                         result.success(message.obj);
                     } else {
-                        Exception ex = (Exception) message.obj;
-                        result.error("ERROR", ex.getMessage(), null);
+                        if (message.obj != null) {
+                            Exception ex = (Exception) message.obj;
+                            result.error("ERROR", ex.getMessage(), null);
+                        }
                     }
                 }
             };
@@ -195,7 +198,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                             }
                         }
                         //保存
-                        String fileSaveName = UUID.randomUUID().toString().replaceAll("-", "") + ".jpg";
+                        String fileSaveName = System.currentTimeMillis() + getRandom(1000, 9999) + ".jpg";
                         //图像名称
                         String retPath = truePath + fileSaveName;
                         //返回地址
@@ -214,7 +217,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         handler.sendMessageDelayed(message, 200);
                     } catch (Exception e) {
                         //失败
-                        Message message = handler.obtainMessage(0, null);
+                        Message message = handler.obtainMessage(0, e);
                         handler.sendMessage(message);
                     }
                 }
@@ -327,6 +330,14 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         } else {
             result.notImplemented();
         }
+    }
+
+    public static String getRandom(int startNum, int endNum) {
+        if (endNum > startNum) {
+            Random random = new Random();
+            return random.nextInt(endNum - startNum) + startNum + "";
+        }
+        return "";
     }
 
     //检查权限
