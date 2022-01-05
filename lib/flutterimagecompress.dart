@@ -3,52 +3,62 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 
-//调用原生压缩图像
+//compress image
 class Flutterimagecompress {
-  //图像
+  //channel
   static const MethodChannel _channel = const MethodChannel('flutterimagecompress');
 
-  //调用系统压缩图片
+  //compress and saved to
   static Future<String?> compressImageToSavePath(String path, String savePath, int quality, int maxWidth, int maxHeight) async {
-    //剔除file部分
+    //nower path
     String nowerPath = path;
-    //地址
+    //file
     if (nowerPath.startsWith("file://")) {
       nowerPath = nowerPath.replaceAll("file://", "");
     }
-    //调用原生压缩图像
-    final String? ret = await _channel.invokeMethod('compressImage',
-        {"path": nowerPath, "savePath": savePath, "quality": quality.toString(), "maxWidth": maxWidth.toString(), "maxHeight": maxHeight.toString()});
+    //compress image
+    final String? ret = await _channel.invokeMethod('compressImage', {
+      "path": nowerPath,
+      "savePath": savePath,
+      "quality": quality.toString(),
+      "maxWidth": maxWidth.toString(),
+      "maxHeight": maxHeight.toString(),
+    });
     return ret;
   }
 
-  //调用系统压缩图片
+  //comprees image and return path
   static Future<String?> compressImage(String path, int quality, int maxWidth, int maxHeight) async {
-    //剔除file部分
+    //file
     String nowerPath = path;
-    //地址
+    //file
     if (nowerPath.startsWith("file://")) {
       nowerPath = nowerPath.replaceAll("file://", "");
     }
-    //调用原生压缩图像
-    final String? ret = await _channel.invokeMethod('compressImage',
-        {"path": nowerPath, "savePath": "", "quality": quality.toString(), "maxWidth": maxWidth.toString(), "maxHeight": maxHeight.toString()});
+    //compress
+    final String? ret = await _channel.invokeMethod('compressImage', {
+      "path": nowerPath,
+      "savePath": "",
+      "quality": quality.toString(),
+      "maxWidth": maxWidth.toString(),
+      "maxHeight": maxHeight.toString(),
+    });
     return ret;
   }
 
-  //获取默认的压缩地址
+  //default compress path
   static Future<String?> getCompressDefaultPath() async {
     final String? ret = await _channel.invokeMethod('getCompressDefaultPath', {});
     return ret;
   }
 
-  //获取应用默认临时缓存地址
+  //default cache path
   static Future<String?> getCacheDefaultPath() async {
     final String? ret = await _channel.invokeMethod('getCacheDefaultPath', {});
     return ret;
   }
 
-  //保存图片
+  //save image
   static Future<String?> saveImage(Uint8List imageData, String savePath, String imageName) async {
     try {
       String? path = await _channel.invokeMethod('saveImage', {
@@ -62,7 +72,7 @@ class Flutterimagecompress {
     }
   }
 
-  //保存图片到相册
+  //save image to photos
   static Future<bool> saveImageToPhotos(Uint8List imageData) async {
     try {
       await _channel.invokeMethod('saveImageToPhotos', {

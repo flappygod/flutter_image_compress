@@ -42,7 +42,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
  */
 public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHandler, ActivityAware, PluginRegistry.RequestPermissionsResultListener {
 
-    //请求
+    //permission
     private final int RequestPermissionCode = 1;
 
     /// The MethodChannel that will the communication between Flutter and native Android
@@ -50,15 +50,17 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
     private MethodChannel channel;
-    //上下文
-    private Context context;
 
+    //context
+    private Context context;
 
     //activity
     private Activity activity;
+
     //binding
     private ActivityPluginBinding activityPluginBinding;
-    //监听
+
+    //listener
     private PermissionListener permissionListener;
 
     @Override
@@ -96,7 +98,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         removeBinding();
     }
 
-    //绑定关系
+    //add
     private void addBinding(ActivityPluginBinding binding) {
         if (activityPluginBinding != null) {
             activityPluginBinding.removeRequestPermissionsResultListener(this);
@@ -106,7 +108,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         activityPluginBinding.addRequestPermissionsResultListener(this);
     }
 
-    //移除关系
+    //remove
     private void removeBinding() {
         if (activityPluginBinding != null) {
             activityPluginBinding.removeRequestPermissionsResultListener(this);
@@ -137,17 +139,12 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
 
     @Override
     public void onMethodCall(@NonNull final MethodCall call, @NonNull final Result result) {
-        //压缩图片
+        //compressImage
         if (call.method.equals("compressImage")) {
-            //系统图片路径
             final String path = call.argument("path");
-            //压缩后保存的路径
             final String savePath = call.argument("savePath");
-            //数据
             final String quality = call.argument("quality");
-            //宽度
             final String maxWidth = call.argument("maxWidth");
-            //高度
             final String maxHeight = call.argument("maxHeight");
             //handler
             final Handler handler = new Handler() {
@@ -164,32 +161,23 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
             };
             new Thread() {
                 public void run() {
-                    //然后保存来着
                     try {
-                        //读取图像
                         Bitmap bitmap = ImageReadTool.readFileBitmap(path,
                                 new LXImageReadOption(
                                         Integer.parseInt(maxWidth),
                                         Integer.parseInt(maxHeight),
                                         false));
-
-                        //保存的地址
                         String truePath = savePath;
-                        //空的，默认
                         if (truePath == null || truePath.equals("")) {
                             truePath = getCompressDefaultPath(context);
                         }
-                        //保存的地址没有斜杠，补足斜杠
                         if (!truePath.endsWith("/")) {
                             truePath = truePath + "/";
                         }
-                        //创建文件夹
                         File savePathFile = new File(truePath);
-                        //如果不存在
                         if (!savePathFile.exists()) {
                             savePathFile.mkdirs();
                         }
-                        //如果不是真实的地址
                         if (!savePathFile.isDirectory()) {
                             truePath = getCompressDefaultPath(context);
                             savePathFile = new File(truePath);
@@ -197,48 +185,34 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                                 savePathFile.mkdirs();
                             }
                         }
-                        //保存
                         String fileSaveName = System.currentTimeMillis() + getRandom(1000, 9999) + ".jpg";
-                        //图像名称
                         String retPath = truePath + fileSaveName;
-                        //返回地址
                         File file = new File(retPath);
-                        //读取
                         FileOutputStream out = new FileOutputStream(file);
-                        //压缩
                         bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(quality), out);
-                        //刷入
                         out.flush();
-                        //关闭
                         out.close();
-                        //成功
                         Message message = handler.obtainMessage(1, retPath);
-                        //发送消息
                         handler.sendMessageDelayed(message, 200);
                     } catch (Exception e) {
-                        //失败
                         Message message = handler.obtainMessage(0, e);
                         handler.sendMessage(message);
                     }
                 }
             }.start();
         }
-        //返回默认压缩地址
+        //get default compress path
         else if (call.method.equals("getCompressDefaultPath")) {
-            //获取压缩缓存地址
             result.success(getCompressDefaultPath(context));
         }
-        //返回默认的缓存地址
+        //get default cache path
         else if (call.method.equals("getCacheDefaultPath")) {
-            //默认缓存地址
             result.success(getCacheDefaultPath(context));
         }
-        //保存图片到本地
+        //save to cache
         else if (call.method.equals("saveImage")) {
             final byte[] imageData = call.argument("imageData");
-            //保存的路径
             final String savePath = call.argument("savePath");
-            //保存的名称
             final String imageName = call.argument("imageName");
             //Handler
             final Handler handler = new Handler() {
@@ -253,25 +227,18 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
             };
             new Thread() {
                 public void run() {
-                    //然后保存来着
                     try {
-                        //保存的地址
                         String truePath = savePath;
-                        //空的，默认
                         if (truePath == null || truePath.equals("")) {
                             truePath = getCompressDefaultPath(context);
                         }
-                        //保存的地址没有斜杠，补足斜杠
                         if (!truePath.endsWith("/")) {
                             truePath = truePath + "/";
                         }
-                        //创建文件夹
                         File savePathFile = new File(truePath);
-                        //如果不存在
                         if (!savePathFile.exists()) {
                             savePathFile.mkdirs();
                         }
-                        //如果不是真实的地址
                         if (!savePathFile.isDirectory()) {
                             truePath = getCompressDefaultPath(context);
                             savePathFile = new File(truePath);
@@ -279,47 +246,31 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                                 savePathFile.mkdirs();
                             }
                         }
-                        //保存
                         String fileSaveName = imageName;
-                        //图像名称
                         String retPath = truePath + fileSaveName;
-                        //返回地址
                         File file = new File(retPath);
-                        //读取
                         FileOutputStream out = new FileOutputStream(file);
-                        //写入数据
                         out.write(imageData);
-                        //刷入
                         out.flush();
-                        //关闭
                         out.close();
-                        //成功
                         Message message = handler.obtainMessage(1, retPath);
-                        //发送消息
                         handler.sendMessageDelayed(message, 200);
                     } catch (Exception exception) {
-                        //失败
                         Message message = handler.obtainMessage(0, exception);
                         handler.sendMessage(message);
                     }
                 }
             }.start();
         }
-        //保存图片到相册
+        //save to photo
         else if (call.method.equals("saveImageToPhotos")) {
-            //先检查权限
             checkPermission(new PermissionListener() {
                 @Override
                 public void result(boolean flag) {
-                    //保存图片到相册
                     try {
-                        //数据
                         final byte[] imageData = call.argument("imageData");
-                        //转换为bitmap
                         Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                        //保存到相册
                         MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
-                        //默认缓存地址
                         result.success(null);
                     } catch (Exception ex) {
                         result.error("ERROR", ex.getMessage(), null);
@@ -340,41 +291,30 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         return "";
     }
 
-    //检查权限
+    //check permission
     private void checkPermission(PermissionListener listener) {
         int hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        //未获取权限，请求权限
         if (hasPermission == PackageManager.PERMISSION_GRANTED) {
             listener.result(true);
-        }
-        //未获取权限，请求权限
-        else {
+        } else {
             permissionListener = listener;
             ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, RequestPermissionCode);
         }
     }
 
-    //获取CompressPath
+    //compress cache path
     public static String getCompressDefaultPath(Context context) {
         String compressPath = getCacheDefaultPath(context) + "imagecache/";
         return compressPath;
     }
 
-    /*********
-     * 获取默认的保存图片地址
-     * @param context 上下文
-     * @return
-     */
+    //default cache path
     public static String getCacheDefaultPath(Context context) {
-        //默认根目录
         String cachePath = "/";
         try {
-            //取得缓存目录
             if (context.getExternalCacheDir() != null) {
                 cachePath = context.getExternalCacheDir().getPath() + "/";
-            }
-            //没取到再取
-            else if (context.getCacheDir() != null) {
+            } else if (context.getCacheDir() != null) {
                 cachePath = context.getCacheDir().getPath() + "/";
             }
             return cachePath;
@@ -387,13 +327,13 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == RequestPermissionCode) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //用户同意了权限申请
+                //success
                 if (permissionListener != null) {
                     permissionListener.result(true);
                     permissionListener = null;
                 }
             } else {
-                //用户拒绝了权限申请，建议向用户解释权限用途
+                //failure
                 if (permissionListener != null) {
                     permissionListener.result(false);
                     permissionListener = null;

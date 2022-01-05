@@ -3,25 +3,14 @@ package com.flappygo.flutterimagecompress.tools;
 import android.util.Log;
 
 /**********
- * 手动横切了Log
- * Package Name:com.flappygo.lipo.limagegetter.tools <br/>
- * ClassName: LLongUtil <br/> 
- * Function: TODO 功能说明 <br/> 
- * date: 2016-3-9 上午10:13:07 <br/> 
- * 
- * @author lijunlin
+ * @author flappygo
  */
 public class LogTool {
 	
-	//设置是否显示log
+	//log show
 	public static boolean  showErrorLog=false;
 	
 	
-	/*************
-	 * 显示log
-	 * @param tag  debugTag
-	 * @param msg  显示msg
-	 */
 	public static void d(String tag, String msg){
 		if(!showErrorLog){
 			return ;

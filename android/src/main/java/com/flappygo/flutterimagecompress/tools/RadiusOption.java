@@ -1,14 +1,13 @@
 package com.flappygo.flutterimagecompress.tools;
 
 /**
- * Created by Administrator on 2017/5/27.
+ * Created by flappygo on 2017/5/27.
  */
 
 public class RadiusOption {
 
-    //corner的类型
+    //corner type
     private  ScaleType  scaleType;
-    //截取的弧度
     private  float      radian;
 
 
@@ -23,19 +22,13 @@ public class RadiusOption {
     }
 
     public enum ScaleType {
-        //图片先进行切割，保证宽高一致
         RADIUS_CENTER_CROP(1),
-        //以宽度作为圆角基础
         RADIUS_WIDTH(2),
-        //以宽度作为圆角基础
         RADIUS_HEIGHT(3),
-        //以宽度作为圆角基础
         RADIUS_ELLIPSE(4);
-
         ScaleType(int ni) {
             nativeInt = ni;
         }
-
         final int nativeInt;
     }
 
