@@ -2,14 +2,10 @@ package com.flappygo.flutterimagecompress;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -25,7 +21,6 @@ import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Random;
-import java.util.UUID;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
