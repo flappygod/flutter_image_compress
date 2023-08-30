@@ -117,12 +117,14 @@ public class ImageReadTool {
 
 
         ///大小
-        double scaleData = 0;
+        double scaleData = 1;
         double sizeData = FileSizeUtil.getFileOrFilesSize(path, FileSizeUtil.SIZETYPE_KB);
         if (setting != null && setting.getMaxKbSize() != 0) {
             scaleData = sizeData / setting.getMaxKbSize();
             if (scaleData > 1.0) {
                 scaleData = Math.sqrt(scaleData);
+            } else {
+                scaleData = 1;
             }
         }
 
@@ -207,7 +209,8 @@ public class ImageReadTool {
 
     //compute size
     public static int computeSampleSize(Options options, int minSideLength, int maxNumOfPixels, int scaleSize) {
-        int initialSize = computeInitialSampleSize(options, minSideLength, maxNumOfPixels, scaleSize);
+        int initialSize = computeInitialSampleSize(options, minSideLength, maxNumOfPixels);
+        initialSize = Math.max(scaleSize, initialSize);
         int roundedSize;
         if (initialSize <= 8) {
             roundedSize = 1;
@@ -221,11 +224,10 @@ public class ImageReadTool {
     }
 
     //compute size
-    private static int computeInitialSampleSize(Options options, int minSideLength, int maxNumOfPixels, int scaleData) {
+    private static int computeInitialSampleSize(Options options, int minSideLength, int maxNumOfPixels) {
         double w = options.outWidth;
         double h = options.outHeight;
         int lowerBound = (maxNumOfPixels == -1) ? 1 : (int) Math.ceil(Math.sqrt(w * h / maxNumOfPixels));
-        lowerBound = Math.max(lowerBound, scaleData);
         int upperBound = (minSideLength == -1) ? 128 : (int) Math.min(Math.floor(w / minSideLength), Math.floor(h / minSideLength));
         if (upperBound < lowerBound) {
             return lowerBound;
