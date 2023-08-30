@@ -116,8 +116,8 @@ public class ImageReadTool {
         int inSampleSize = 1;
 
 
-        double scaleData = 0;
         ///大小
+        double scaleData = 0;
         double sizeData = FileSizeUtil.getFileOrFilesSize(path, FileSizeUtil.SIZETYPE_KB);
         if (setting != null && setting.getMaxKbSize() != 0) {
             scaleData = sizeData / setting.getMaxKbSize();
