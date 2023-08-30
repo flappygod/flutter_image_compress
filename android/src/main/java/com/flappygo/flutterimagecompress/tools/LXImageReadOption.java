@@ -10,8 +10,10 @@ public class LXImageReadOption {
     private int maxWidth;
     //max height
     private int maxHeight;
+    //max height
+    private int maxKbSize;
     //scale fill
-    private boolean scaleFill;
+    private boolean scaleFill = false;
     //radius
     private RadiusOption radiusOption;
     //read bitmap
@@ -25,6 +27,13 @@ public class LXImageReadOption {
         this.scaleFill = scaleFill;
     }
 
+
+    public LXImageReadOption(int maxWidth, int maxHeight, int maxKbSize) {
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+        this.maxKbSize = maxKbSize;
+    }
+
     public LXImageReadOption(int maxWidth, int maxHeight, boolean scaleFill, Bitmap.Config config) {
         super();
         this.maxWidth = maxWidth;
@@ -32,6 +41,7 @@ public class LXImageReadOption {
         this.scaleFill = scaleFill;
         this.inPreferredConfig = config;
     }
+
 
     public LXImageReadOption(int maxWidth, int maxHeight, boolean scaleFill, Bitmap.Config config, RadiusOption radiusOption) {
         super();
@@ -42,6 +52,22 @@ public class LXImageReadOption {
         this.radiusOption = radiusOption;
     }
 
+    public LXImageReadOption(int maxWidth, int maxHeight, int maxKbSize, boolean scaleFill, RadiusOption radiusOption, Bitmap.Config inPreferredConfig) {
+        this.maxWidth = maxWidth;
+        this.maxHeight = maxHeight;
+        this.maxKbSize = maxKbSize;
+        this.scaleFill = scaleFill;
+        this.radiusOption = radiusOption;
+        this.inPreferredConfig = inPreferredConfig;
+    }
+
+    public int getMaxKbSize() {
+        return maxKbSize;
+    }
+
+    public void setMaxKbSize(int maxKbSize) {
+        this.maxKbSize = maxKbSize;
+    }
 
     public int getMaxWidth() {
         return maxWidth;

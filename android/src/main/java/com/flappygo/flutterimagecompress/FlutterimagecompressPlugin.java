@@ -6,7 +6,10 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
 
@@ -20,6 +23,7 @@ import com.flappygo.flutterimagecompress.tools.LXImageReadOption;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Random;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -135,149 +139,171 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     @Override
     public void onMethodCall(@NonNull final MethodCall call, @NonNull final Result result) {
         //compressImage
-        if (call.method.equals("compressImage")) {
-            final String path = call.argument("path");
-            final String savePath = call.argument("savePath");
-            final String quality = call.argument("quality");
-            final String maxWidth = call.argument("maxWidth");
-            final String maxHeight = call.argument("maxHeight");
-            //handler
-            final Handler handler = new Handler() {
-                public void handleMessage(Message message) {
-                    if (message.what == 1) {
-                        result.success(message.obj);
-                    } else {
-                        if (message.obj != null) {
+        switch (call.method) {
+            case "compressImage": {
+                final String path = call.argument("path");
+                final String savePath = call.argument("savePath");
+                final String quality = call.argument("quality");
+                final String maxWidth = call.argument("maxWidth");
+                final String maxHeight = call.argument("maxHeight");
+                final String maxSize = call.argument("maxSize");
+                //handler
+                final Handler handler = new Handler(Looper.getMainLooper()) {
+                    public void handleMessage(Message message) {
+                        if (message.what == 1) {
+                            result.success(message.obj);
+                        } else {
+                            if (message.obj != null) {
+                                Exception ex = (Exception) message.obj;
+                                result.error("ERROR", ex.getMessage(), null);
+                            }
+                        }
+                    }
+                };
+                new Thread() {
+                    public void run() {
+                        try {
+                            assert maxWidth != null;
+                            assert maxHeight != null;
+                            assert quality != null;
+                            Bitmap bitmap = ImageReadTool.readFileBitmap(
+                                    path,
+                                    (maxSize != null && !maxSize.isEmpty()) ?
+                                            new LXImageReadOption(Integer.parseInt(maxWidth), Integer.parseInt(maxHeight), Integer.parseInt(maxSize)) :
+                                            new LXImageReadOption(Integer.parseInt(maxWidth), Integer.parseInt(maxHeight), 0)
+                            );
+                            String truePath = savePath;
+                            if (truePath == null || truePath.isEmpty()) {
+                                truePath = getCompressDefaultPath(context);
+                            }
+                            if (!truePath.endsWith("/")) {
+                                truePath = truePath + "/";
+                            }
+                            File savePathFile = new File(truePath);
+                            if (!savePathFile.exists()) {
+                                if (!savePathFile.isDirectory()) {
+                                    savePathFile.delete();
+                                }
+                                if (!savePathFile.mkdirs()) {
+                                    Message message = handler.obtainMessage(0, new Exception("mkdirs failed"));
+                                    handler.sendMessage(message);
+                                    return;
+                                }
+                            }
+                            String fileSaveName = System.currentTimeMillis() + getRandom(10000, 99999) + ".jpg";
+                            String retPath = truePath + fileSaveName;
+                            File file = new File(retPath);
+                            FileOutputStream out = new FileOutputStream(file);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(quality), out);
+                            out.flush();
+                            out.close();
+                            Message message = handler.obtainMessage(1, retPath);
+                            handler.sendMessageDelayed(message, 200);
+                        } catch (Exception e) {
+                            Message message = handler.obtainMessage(0, e);
+                            handler.sendMessage(message);
+                        }
+                    }
+                }.start();
+                break;
+            }
+            //get default compress path
+            case "getCompressDefaultPath":
+                result.success(getCompressDefaultPath(context));
+                break;
+            //get default cache path
+            case "getCacheDefaultPath":
+                result.success(getCacheDefaultPath(context));
+                break;
+            //save to cache
+            case "saveImage": {
+                final byte[] imageData = call.argument("imageData");
+                final String savePath = call.argument("savePath");
+                final String imageName = call.argument("imageName");
+                //Handler
+                final Handler handler = new Handler(Looper.getMainLooper()) {
+                    public void handleMessage(Message message) {
+                        if (message.what == 1) {
+                            result.success(message.obj);
+                        } else {
                             Exception ex = (Exception) message.obj;
                             result.error("ERROR", ex.getMessage(), null);
                         }
                     }
-                }
-            };
-            new Thread() {
-                public void run() {
-                    try {
-                        Bitmap bitmap = ImageReadTool.readFileBitmap(path,
-                                new LXImageReadOption(
-                                        Integer.parseInt(maxWidth),
-                                        Integer.parseInt(maxHeight),
-                                        false));
-                        String truePath = savePath;
-                        if (truePath == null || truePath.equals("")) {
-                            truePath = getCompressDefaultPath(context);
-                        }
-                        if (!truePath.endsWith("/")) {
-                            truePath = truePath + "/";
-                        }
-                        File savePathFile = new File(truePath);
-                        if (!savePathFile.exists()) {
-                            savePathFile.mkdirs();
-                        }
-                        if (!savePathFile.isDirectory()) {
-                            truePath = getCompressDefaultPath(context);
-                            savePathFile = new File(truePath);
-                            if (!savePathFile.exists()) {
-                                savePathFile.mkdirs();
+                };
+                new Thread() {
+                    public void run() {
+                        try {
+                            String truePath = savePath;
+                            if (truePath == null || truePath.equals("")) {
+                                truePath = getCompressDefaultPath(context);
                             }
-                        }
-                        String fileSaveName = System.currentTimeMillis() + getRandom(1000, 9999) + ".jpg";
-                        String retPath = truePath + fileSaveName;
-                        File file = new File(retPath);
-                        FileOutputStream out = new FileOutputStream(file);
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(quality), out);
-                        out.flush();
-                        out.close();
-                        Message message = handler.obtainMessage(1, retPath);
-                        handler.sendMessageDelayed(message, 200);
-                    } catch (Exception e) {
-                        Message message = handler.obtainMessage(0, e);
-                        handler.sendMessage(message);
-                    }
-                }
-            }.start();
-        }
-        //get default compress path
-        else if (call.method.equals("getCompressDefaultPath")) {
-            result.success(getCompressDefaultPath(context));
-        }
-        //get default cache path
-        else if (call.method.equals("getCacheDefaultPath")) {
-            result.success(getCacheDefaultPath(context));
-        }
-        //save to cache
-        else if (call.method.equals("saveImage")) {
-            final byte[] imageData = call.argument("imageData");
-            final String savePath = call.argument("savePath");
-            final String imageName = call.argument("imageName");
-            //Handler
-            final Handler handler = new Handler() {
-                public void handleMessage(Message message) {
-                    if (message.what == 1) {
-                        result.success(message.obj);
-                    } else {
-                        Exception ex = (Exception) message.obj;
-                        result.error("ERROR", ex.getMessage(), null);
-                    }
-                }
-            };
-            new Thread() {
-                public void run() {
-                    try {
-                        String truePath = savePath;
-                        if (truePath == null || truePath.equals("")) {
-                            truePath = getCompressDefaultPath(context);
-                        }
-                        if (!truePath.endsWith("/")) {
-                            truePath = truePath + "/";
-                        }
-                        File savePathFile = new File(truePath);
-                        if (!savePathFile.exists()) {
-                            savePathFile.mkdirs();
-                        }
-                        if (!savePathFile.isDirectory()) {
-                            truePath = getCompressDefaultPath(context);
-                            savePathFile = new File(truePath);
-                            if (!savePathFile.exists()) {
-                                savePathFile.mkdirs();
+                            if (!truePath.endsWith("/")) {
+                                truePath = truePath + "/";
                             }
+                            File savePathFile = new File(truePath);
+                            if (!savePathFile.exists()) {
+                                if (!savePathFile.isDirectory()) {
+                                    savePathFile.delete();
+                                }
+                                if (!savePathFile.mkdirs()) {
+                                    Message message = handler.obtainMessage(0, new Exception("mkdirs failed"));
+                                    handler.sendMessage(message);
+                                    return;
+                                }
+                            }
+                            if (!savePathFile.isDirectory()) {
+                                truePath = getCompressDefaultPath(context);
+                                savePathFile = new File(truePath);
+                                if (!savePathFile.exists()) {
+                                    if (!savePathFile.mkdirs()) {
+                                        Message message = handler.obtainMessage(0, new Exception("mkdirs failed"));
+                                        handler.sendMessage(message);
+                                        return;
+                                    }
+                                }
+                            }
+                            String retPath = truePath + imageName;
+                            File file = new File(retPath);
+                            FileOutputStream out = new FileOutputStream(file);
+                            out.write(imageData);
+                            out.flush();
+                            out.close();
+                            Message message = handler.obtainMessage(1, retPath);
+                            handler.sendMessageDelayed(message, 200);
+                        } catch (Exception exception) {
+                            Message message = handler.obtainMessage(0, exception);
+                            handler.sendMessage(message);
                         }
-                        String fileSaveName = imageName;
-                        String retPath = truePath + fileSaveName;
-                        File file = new File(retPath);
-                        FileOutputStream out = new FileOutputStream(file);
-                        out.write(imageData);
-                        out.flush();
-                        out.close();
-                        Message message = handler.obtainMessage(1, retPath);
-                        handler.sendMessageDelayed(message, 200);
-                    } catch (Exception exception) {
-                        Message message = handler.obtainMessage(0, exception);
-                        handler.sendMessage(message);
                     }
-                }
-            }.start();
-        }
-        //save to photo
-        else if (call.method.equals("saveImageToPhotos")) {
-            checkPermission(new PermissionListener() {
-                @Override
-                public void result(boolean flag) {
-                    try {
-                        final byte[] imageData = call.argument("imageData");
-                        Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                        MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
-                        result.success(null);
-                    } catch (Exception ex) {
-                        result.error("ERROR", ex.getMessage(), null);
+                }.start();
+                break;
+            }
+            //save to photo
+            case "saveImageToPhotos":
+                checkPermission(new PermissionListener() {
+                    @Override
+                    public void result(boolean flag) {
+                        try {
+                            final byte[] imageData = call.argument("imageData");
+                            assert imageData != null;
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                            MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
+                            result.success(null);
+                        } catch (Exception ex) {
+                            result.error("ERROR", ex.getMessage(), null);
+                        }
                     }
-                }
-            });
-
-        } else {
-            result.notImplemented();
+                });
+                break;
+            default:
+                result.notImplemented();
+                break;
         }
     }
 
+
+    ///获取随机数
     public static String getRandom(int startNum, int endNum) {
         if (endNum > startNum) {
             Random random = new Random();
@@ -286,7 +312,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         return "";
     }
 
-    //check permission
+    ///检查权限
     private void checkPermission(PermissionListener listener) {
         int hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (hasPermission == PackageManager.PERMISSION_GRANTED) {
@@ -297,13 +323,12 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
         }
     }
 
-    //compress cache path
+    ///默认的压缩目录
     public static String getCompressDefaultPath(Context context) {
-        String compressPath = getCacheDefaultPath(context) + "imagecache/";
-        return compressPath;
+        return getCacheDefaultPath(context) + "imageCache/";
     }
 
-    //default cache path
+    ///默认的目录
     public static String getCacheDefaultPath(Context context) {
         String cachePath = "/";
         try {
@@ -319,7 +344,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     }
 
     @Override
-    public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public boolean onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == RequestPermissionCode) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //success
