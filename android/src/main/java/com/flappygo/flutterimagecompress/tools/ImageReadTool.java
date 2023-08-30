@@ -8,8 +8,10 @@ import android.graphics.Matrix;
 
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.File;
+import java.math.BigDecimal;
 
 /********
  * @author flappygo
@@ -105,8 +107,6 @@ public class ImageReadTool {
         Options options = new Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(path, options);
-        int imageHeight = options.outHeight;
-        int imageWidth = options.outWidth;
         options.inDither = false;
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         if (setting != null && setting.getInPreferredConfig() != null) {
@@ -115,9 +115,15 @@ public class ImageReadTool {
         //最大高度宽度
         int inSampleSize = 1;
 
-
-        ///大小
-        double scaleData = 1;
+        ///set max size
+        if (options.outWidth != 0 && options.outHeight != 0 && setting != null && setting.getMaxHeight() != 0 && setting.getMaxWidth() != 0) {
+            inSampleSize = calculateInSampleSize(
+                    options,
+                    setting.getMaxHeight()
+                    , setting.getMaxWidth()
+            );
+        }
+        double scaleData;
         double sizeData = FileSizeUtil.getFileOrFilesSize(path, FileSizeUtil.SIZETYPE_KB);
         if (setting != null && setting.getMaxKbSize() != 0) {
             scaleData = sizeData / setting.getMaxKbSize();
@@ -126,20 +132,37 @@ public class ImageReadTool {
             } else {
                 scaleData = 1;
             }
-        }
-
-        if (imageWidth != 0 && imageHeight != 0 && setting != null && setting.getMaxHeight() != 0 && setting.getMaxWidth() != 0) {
-            inSampleSize = computeSampleSize(
-                    options,
-                    -1,
-                    setting.getMaxHeight() * setting.getMaxWidth(),
-                    (int) scaleData
-            );
+            int scale = 1;
+            while (scaleData > scale) {
+                scale <<= 1;
+            }
+            inSampleSize = Math.max(inSampleSize, scale);
         }
         options.inSampleSize = inSampleSize;
         options.inJustDecodeBounds = false;
         return options;
     }
+
+
+    ///calculate in sample size
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+        if (height > reqHeight || width > reqWidth) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        return inSampleSize;
+    }
+
 
     //scale the image
     public synchronized static Bitmap imageScaleMax(Bitmap bitmap,
@@ -207,38 +230,5 @@ public class ImageReadTool {
         return bitmapNew;
     }
 
-    //compute size
-    public static int computeSampleSize(Options options, int minSideLength, int maxNumOfPixels, int scaleSize) {
-        int initialSize = computeInitialSampleSize(options, minSideLength, maxNumOfPixels);
-        initialSize = Math.max(scaleSize, initialSize);
-        int roundedSize;
-        if (initialSize <= 8) {
-            roundedSize = 1;
-            while (roundedSize < initialSize) {
-                roundedSize <<= 1;
-            }
-        } else {
-            roundedSize = (initialSize + 7) / 8 * 8;
-        }
-        return roundedSize;
-    }
-
-    //compute size
-    private static int computeInitialSampleSize(Options options, int minSideLength, int maxNumOfPixels) {
-        double w = options.outWidth;
-        double h = options.outHeight;
-        int lowerBound = (maxNumOfPixels == -1) ? 1 : (int) Math.ceil(Math.sqrt(w * h / maxNumOfPixels));
-        int upperBound = (minSideLength == -1) ? 128 : (int) Math.min(Math.floor(w / minSideLength), Math.floor(h / minSideLength));
-        if (upperBound < lowerBound) {
-            return lowerBound;
-        }
-        if ((maxNumOfPixels == -1) && (minSideLength == -1)) {
-            return 1;
-        } else if (minSideLength == -1) {
-            return lowerBound;
-        } else {
-            return upperBound;
-        }
-    }
 
 }

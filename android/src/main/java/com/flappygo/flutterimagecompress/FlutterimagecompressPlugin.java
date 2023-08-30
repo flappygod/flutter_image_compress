@@ -150,7 +150,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                 String maxSize = call.argument("maxSize");
 
                 if (quality == null || quality.isEmpty()) {
-                    quality = "80";
+                    quality = "90";
                 }
                 if (maxWidth == null || maxWidth.isEmpty()) {
                     maxWidth = "0";
