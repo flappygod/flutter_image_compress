@@ -8,7 +8,8 @@ class Flutterimagecompress {
   static const MethodChannel _channel = const MethodChannel('flutterimagecompress');
 
   ///compress and saved to
-  static Future<String?> compressImageToSavePath(String path, String savePath, int quality, int maxWidth, int maxHeight) async {
+  static Future<String?> compressImageToSavePath(String path, String savePath,
+      {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
     //current path
     String currentPath = path;
     //file
@@ -19,15 +20,16 @@ class Flutterimagecompress {
     final String? ret = await _channel.invokeMethod('compressImage', {
       "path": currentPath,
       "savePath": savePath,
-      "quality": quality.toString(),
-      "maxWidth": maxWidth.toString(),
-      "maxHeight": maxHeight.toString(),
+      "quality": quality?.toString(),
+      "maxWidth": maxWidth?.toString(),
+      "maxHeight": maxHeight?.toString(),
+      "maxSize": maxSize?.toString(),
     });
     return ret;
   }
 
   ///compress image and return path
-  static Future<String?> compressImage(String path, int quality, int maxWidth, int maxHeight) async {
+  static Future<String?> compressImage(String path, {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
     //file
     String currentPath = path;
     //file
@@ -38,9 +40,10 @@ class Flutterimagecompress {
     final String? ret = await _channel.invokeMethod('compressImage', {
       "path": currentPath,
       "savePath": "",
-      "quality": quality.toString(),
-      "maxWidth": maxWidth.toString(),
-      "maxHeight": maxHeight.toString(),
+      "quality": quality?.toString(),
+      "maxWidth": maxWidth?.toString(),
+      "maxHeight": maxHeight?.toString(),
+      "maxSize": maxSize?.toString(),
     });
     return ret;
   }

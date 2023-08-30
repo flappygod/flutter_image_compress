@@ -143,10 +143,25 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
             case "compressImage": {
                 final String path = call.argument("path");
                 final String savePath = call.argument("savePath");
-                final String quality = call.argument("quality");
-                final String maxWidth = call.argument("maxWidth");
-                final String maxHeight = call.argument("maxHeight");
-                final String maxSize = call.argument("maxSize");
+
+                String quality = call.argument("quality");
+                String maxWidth = call.argument("maxWidth");
+                String maxHeight = call.argument("maxHeight");
+                String maxSize = call.argument("maxSize");
+
+                if (quality == null || quality.isEmpty()) {
+                    quality = "80";
+                }
+                if (maxWidth == null || maxWidth.isEmpty()) {
+                    maxWidth = "0";
+                }
+                if (maxHeight == null || maxHeight.isEmpty()) {
+                    maxHeight = "0";
+                }
+                if (maxSize == null || maxSize.isEmpty()) {
+                    maxSize = "0";
+                }
+
                 //handler
                 final Handler handler = new Handler(Looper.getMainLooper()) {
                     public void handleMessage(Message message) {
@@ -160,17 +175,16 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         }
                     }
                 };
+                final String finalMaxWidth = maxWidth;
+                final String finalMaxHeight = maxHeight;
+                final String finalMaxSize = maxSize;
+                final String finalQuality = quality;
                 new Thread() {
                     public void run() {
                         try {
-                            assert maxWidth != null;
-                            assert maxHeight != null;
-                            assert quality != null;
                             Bitmap bitmap = ImageReadTool.readFileBitmap(
                                     path,
-                                    (maxSize != null && !maxSize.isEmpty()) ?
-                                            new LXImageReadOption(Integer.parseInt(maxWidth), Integer.parseInt(maxHeight), Integer.parseInt(maxSize)) :
-                                            new LXImageReadOption(Integer.parseInt(maxWidth), Integer.parseInt(maxHeight), 0)
+                                    new LXImageReadOption(Integer.parseInt(finalMaxWidth), Integer.parseInt(finalMaxHeight), Integer.parseInt(finalMaxSize))
                             );
                             String truePath = savePath;
                             if (truePath == null || truePath.isEmpty()) {
@@ -194,7 +208,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                             String retPath = truePath + fileSaveName;
                             File file = new File(retPath);
                             FileOutputStream out = new FileOutputStream(file);
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(quality), out);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, Integer.parseInt(finalQuality), out);
                             out.flush();
                             out.close();
                             Message message = handler.obtainMessage(1, retPath);

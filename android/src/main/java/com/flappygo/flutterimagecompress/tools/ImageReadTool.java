@@ -114,21 +114,25 @@ public class ImageReadTool {
         }
         //最大高度宽度
         int inSampleSize = 1;
-        if (imageWidth != 0 && imageHeight != 0 && setting != null) {
-            inSampleSize = computeSampleSize(
-                    options,
-                    -1,
-                    setting.getMaxHeight() * setting.getMaxWidth()
-            );
-        }
+
+
+        double scaleData = 0;
         ///大小
         double sizeData = FileSizeUtil.getFileOrFilesSize(path, FileSizeUtil.SIZETYPE_KB);
         if (setting != null && setting.getMaxKbSize() != 0) {
-            double scaleData = sizeData / setting.getMaxKbSize();
+            scaleData = sizeData / setting.getMaxKbSize();
             if (scaleData > 1.0) {
                 scaleData = Math.sqrt(scaleData);
             }
-            inSampleSize = Math.min(inSampleSize, (int) scaleData);
+        }
+
+        if (imageWidth != 0 && imageHeight != 0 && setting != null && setting.getMaxHeight() != 0 && setting.getMaxWidth() != 0) {
+            inSampleSize = computeSampleSize(
+                    options,
+                    -1,
+                    setting.getMaxHeight() * setting.getMaxWidth(),
+                    (int) scaleData
+            );
         }
         options.inSampleSize = inSampleSize;
         options.inJustDecodeBounds = false;
@@ -202,8 +206,8 @@ public class ImageReadTool {
     }
 
     //compute size
-    public static int computeSampleSize(Options options, int minSideLength, int maxNumOfPixels) {
-        int initialSize = computeInitialSampleSize(options, minSideLength, maxNumOfPixels);
+    public static int computeSampleSize(Options options, int minSideLength, int maxNumOfPixels, int scaleSize) {
+        int initialSize = computeInitialSampleSize(options, minSideLength, maxNumOfPixels, scaleSize);
         int roundedSize;
         if (initialSize <= 8) {
             roundedSize = 1;
@@ -217,10 +221,11 @@ public class ImageReadTool {
     }
 
     //compute size
-    private static int computeInitialSampleSize(Options options, int minSideLength, int maxNumOfPixels) {
+    private static int computeInitialSampleSize(Options options, int minSideLength, int maxNumOfPixels, int scaleData) {
         double w = options.outWidth;
         double h = options.outHeight;
         int lowerBound = (maxNumOfPixels == -1) ? 1 : (int) Math.ceil(Math.sqrt(w * h / maxNumOfPixels));
+        lowerBound = Math.max(lowerBound, scaleData);
         int upperBound = (minSideLength == -1) ? 128 : (int) Math.min(Math.floor(w / minSideLength), Math.floor(h / minSideLength));
         if (upperBound < lowerBound) {
             return lowerBound;
