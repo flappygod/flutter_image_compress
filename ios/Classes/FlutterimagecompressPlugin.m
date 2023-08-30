@@ -16,18 +16,29 @@
         NSString* path=(NSString*)call.arguments[@"path"];
         //savePath
         NSString* savePath=(NSString*)call.arguments[@"savePath"];
+
+
         //quality
-        NSInteger quality=[(NSString*)call.arguments[@"quality"] integerValue];
+        NSString* qualityStr=call.arguments[@"quality"];
         //maxWidth
-        NSInteger maxWidth=[(NSString*)call.arguments[@"maxWidth"] integerValue];
+        NSString* maxWidthStr=call.arguments[@"maxWidth"];
         //maxHeight
-        NSInteger maxHeight=[(NSString*)call.arguments[@"maxHeight"] integerValue];
-        
+        NSString* maxHeightStr=call.arguments[@"maxHeight"];
+        //maxHeight
+        NSString* maxSizeStr=call.arguments[@"maxSize"];
+
+        NSInteger quality=(qualityStr ==nil) ? 90:[qualityStr integerValue];
+        NSInteger maxWidth=(maxWidthStr ==nil) ? 0:[maxWidthStr integerValue];
+        NSInteger maxHeight=(maxHeightStr ==nil) ? 0:[maxHeightStr integerValue];
+        NSInteger maxSize=(maxSizeStr ==nil) ? 0:[maxSizeStr integerValue];
+
         //get path image
         UIImage* image=[[UIImage alloc]initWithContentsOfFile:path];
         //scaled
         UIImage* scaledImage=[self OriginImage:image
-                                scaleByMaxsize:CGSizeMake(maxWidth, maxHeight)];
+                                       andPath:path
+                                       andSize:CGSizeMake(maxWidth, maxHeight)
+                                       maxSize:maxSize];
         //quality
         double qualityDobule=quality*1.0/100;
         //quality
@@ -53,7 +64,7 @@
         BOOL isDir = FALSE;
         BOOL isDirExist = [fileManager fileExistsAtPath:savePath
                                             isDirectory:&isDir];
-                
+
         if(isDirExist){
             if(!isDir){
                 savePath=[self getCompressDefaultPath];
@@ -61,7 +72,7 @@
                        withIntermediateDirectories:YES
                                         attributes:nil
                                              error:nil];
-                
+
             }
         }else{
             [fileManager createDirectoryAtPath:savePath
@@ -69,10 +80,10 @@
                                     attributes:nil
                                          error:nil];
         }
-        
+
         //true path
         NSString* truePath=[NSString stringWithFormat:@"%@%ld%@",savePath,data,@".jpg"];
-        
+
         //save to path
         NSException* exception=[self saveToDocument:trueImage
                                        withFilePath:truePath];
@@ -118,7 +129,7 @@
                        withIntermediateDirectories:YES
                                         attributes:nil
                                              error:nil];
-                
+
             }
         }else{
             [fileManager createDirectoryAtPath:savePath
@@ -126,9 +137,9 @@
                                     attributes:nil
                                          error:nil];
         }
-        
+
         NSString* truePath=[NSString stringWithFormat:@"%@%@",savePath,imageName];
-        
+
         //save
         NSException* exception=[self saveToDocument:trueImage
                                        withFilePath:truePath];
@@ -138,10 +149,10 @@
             result([FlutterError  errorWithCode:exception.name message:exception.reason details:nil]);
         }
     }
-    
+
     //save to phone
     else if ([@"saveImageToPhotos" isEqualToString:call.method]) {
-        
+
         [self isCanVisitPhotoLibrary:^(BOOL status){
             if(status){
                 FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
@@ -154,7 +165,7 @@
                                             details:nil]);
             }
         }];
-        
+
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -201,22 +212,52 @@
 }
 
 
+//path size
+- (long long) fileSizeAtPath:(NSString*) filePath{
+    NSFileManager* manager = [NSFileManager defaultManager];
+    if ([manager fileExistsAtPath:filePath]){
+        return [[manager attributesOfItemAtPath:filePath error:nil] fileSize];
+    }
+    return 0;
+}
+
 
 //Origin iamge
 -(UIImage*)OriginImage:(UIImage *)image
-        scaleByMaxsize:(CGSize)size{
-    if(image.size.width<size.width&&image.size.height<size.height){
+               andPath:(NSString*)path
+               andSize:(CGSize)size
+               maxSize:(NSInteger) maxSize{
+
+    //width
+    CGFloat width = size.width;
+    CGFloat height = size.height;
+
+    //max size
+    if(maxSize!=0){
+        long long fileSize = [self fileSizeAtPath:path];
+        long kbSize = fileSize/1024;
+        //scale down
+        double scaleDown = kbSize/maxSize;
+        double squareDown = sqrtf(scaleDown);
+        //width
+        width = (image.size.width/squareDown);
+        height = (image.size.height/squareDown);
+    }
+
+    //image size
+    if(image.size.width<width&&image.size.height<height){
         return image;
     }
+
     //size
     float xy=image.size.width/image.size.height;
-    float xy2=size.width/size.height;
+    float xy2=width/height;
     if(xy>xy2){
-        CGRect rect=CGRectMake(0, 0, size.width, size.width/xy);
+        CGRect rect=CGRectMake(0, 0, (int)width, (int)(width/xy));
         UIGraphicsBeginImageContextWithOptions(CGSizeMake(rect.size.width, rect.size.height), NO, 1.0);
         [image drawInRect:rect];
     }else{
-        CGRect rect=CGRectMake(0, 0, size.height*xy, size.height);
+        CGRect rect=CGRectMake(0, 0, (int)(height*xy), (int)height);
         UIGraphicsBeginImageContextWithOptions(CGSizeMake(rect.size.width, rect.size.height), NO, 1.0);
         [image drawInRect:rect];
     }
