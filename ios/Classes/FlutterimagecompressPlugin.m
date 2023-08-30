@@ -19,18 +19,15 @@
 
 
         //quality
-        NSString* qualityStr=call.arguments[@"quality"];
-        //maxWidth
-        NSString* maxWidthStr=call.arguments[@"maxWidth"];
-        //maxHeight
-        NSString* maxHeightStr=call.arguments[@"maxHeight"];
-        //maxHeight
-        NSString* maxSizeStr=call.arguments[@"maxSize"];
+        NSString* qualityStr=(NSString*)call.arguments[@"quality"];
+        NSString* maxWidthStr=(NSString*)call.arguments[@"maxWidth"];
+        NSString* maxHeightStr=(NSString*)call.arguments[@"maxHeight"];
+        NSString* maxSizeStr=(NSString*)call.arguments[@"maxSize"];
 
-        NSInteger quality=(qualityStr ==nil) ? 90:[qualityStr integerValue];
-        NSInteger maxWidth=(maxWidthStr ==nil) ? 0:[maxWidthStr integerValue];
-        NSInteger maxHeight=(maxHeightStr ==nil) ? 0:[maxHeightStr integerValue];
-        NSInteger maxSize=(maxSizeStr ==nil) ? 0:[maxSizeStr integerValue];
+        NSInteger quality=(qualityStr ==nil || qualityStr == [NSNull null] ) ? 90:[qualityStr integerValue];
+        NSInteger maxWidth=(maxWidthStr ==nil || maxWidthStr == [NSNull null]) ? 0:[maxWidthStr integerValue];
+        NSInteger maxHeight=(maxHeightStr ==nil|| maxHeightStr == [NSNull null]) ? 0:[maxHeightStr integerValue];
+        NSInteger maxSize=(maxSizeStr ==nil|| maxSizeStr == [NSNull null]) ? 0:[maxSizeStr integerValue];
 
         //get path image
         UIImage* image=[[UIImage alloc]initWithContentsOfFile:path];
