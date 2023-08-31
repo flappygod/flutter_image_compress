@@ -31,6 +31,15 @@
 
         //get path image
         UIImage* image=[[UIImage alloc]initWithContentsOfFile:path];
+
+        //nil
+        if(image == nil){
+            result([FlutterError  errorWithCode:@"Can't get image from the path"
+                                        message:@"Can't get image from the path"
+                                        details:nil]);
+            return;
+        }
+
         //scaled
         UIImage* scaledImage=[self OriginImage:image
                                        andPath:path
