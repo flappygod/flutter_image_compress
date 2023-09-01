@@ -213,6 +213,8 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                             out.close();
                             Message message = handler.obtainMessage(1, retPath);
                             handler.sendMessageDelayed(message, 200);
+                            bitmap.recycle();
+                            System.gc();
                         } catch (Exception e) {
                             Message message = handler.obtainMessage(0, e);
                             handler.sendMessage(message);
@@ -285,6 +287,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                             out.close();
                             Message message = handler.obtainMessage(1, retPath);
                             handler.sendMessageDelayed(message, 200);
+                            System.gc();
                         } catch (Exception exception) {
                             Message message = handler.obtainMessage(0, exception);
                             handler.sendMessage(message);
