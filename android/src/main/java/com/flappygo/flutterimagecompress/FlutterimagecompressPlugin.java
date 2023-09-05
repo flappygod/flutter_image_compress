@@ -304,8 +304,25 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
                         try {
                             final byte[] imageData = call.argument("imageData");
                             assert imageData != null;
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                            MediaStore.Images.Media.insertImage(context.getContentResolver(), bitmap, System.currentTimeMillis() + "", "");
+                            Bitmap image = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                            Bitmap bitmap = Bitmap.createBitmap(
+                                    image.getWidth(),
+                                    image.getHeight(),
+                                    Bitmap.Config.ARGB_8888
+                            );
+                            Canvas canvas = new Canvas(bitmap);
+                            Paint paint = new Paint();
+                            paint.setColor(Color.WHITE);
+                            canvas.drawRect(0, 0, image.getWidth(), image.getHeight(), paint);
+                            canvas.drawBitmap(image, 0, 0, paint);
+                            MediaStore.Images.Media.insertImage(
+                                    context.getContentResolver(),
+                                    bitmap,
+                                    Long.toString(System.currentTimeMillis()),
+                                    null
+                            );
+                            image.recycle();
+                            bitmap.recycle();
                             result.success(null);
                         } catch (Exception ex) {
                             result.error("ERROR", ex.getMessage(), null);
