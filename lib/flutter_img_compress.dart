@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 //compress image
-class FlutterImageCompress {
+class FlutterImgCompress {
   ///channel
   static const MethodChannel _channel =
       const MethodChannel('flutter_img_compress');
