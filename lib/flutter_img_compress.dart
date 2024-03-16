@@ -26,7 +26,8 @@ class FlutterImgCompress {
   }
 
   ///compress image and return path
-  static Future<String?> compressImage(String path, {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
+  static Future<String?> compressImage(String path,
+      {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
     //file
     String currentPath = path;
     //file
@@ -47,7 +48,8 @@ class FlutterImgCompress {
 
   ///default compress path
   static Future<String?> getCompressDefaultPath() async {
-    final String? ret = await _channel.invokeMethod('getCompressDefaultPath', {});
+    final String? ret =
+        await _channel.invokeMethod('getCompressDefaultPath', {});
     return ret;
   }
 
@@ -58,7 +60,8 @@ class FlutterImgCompress {
   }
 
   ///save image
-  static Future<String?> saveImage(Uint8List imageData, String savePath, String imageName) async {
+  static Future<String?> saveImage(
+      Uint8List imageData, String savePath, String imageName) async {
     try {
       String? path = await _channel.invokeMethod('saveImage', {
         "imageData": imageData,
