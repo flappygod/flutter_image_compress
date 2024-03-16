@@ -1,29 +1,25 @@
-# flutterimagecompress
+# flutter_img_compress
 
-A new Flutter plugin.
+Compress your image to a expected size.
 
 
 How to use?
 
-Flutterimagecompress.compressImage(path,saveDictonary,quality,maxWidth,maxHeight);
+#file path
+String? filePath = await FlutterImageCompress.compressImage(
+path,
+maxSize: size,
+maxWidth: maxWidth,
+maxHeight: maxHeight,
+quality: quality,
+);
 
-or 
+or just
 
-Flutterimagecompress.compressImage(path,quality,maxWidth,maxHeight);
+FlutterImageCompress.compressImage(path,quality,maxWidth,maxHeight);
 
-which will save to path
+#which will save to path
 
-Flutterimagecompress.getCompressDefaultPath();
+FlutterImageCompress.getCompressDefaultPath();
 
 
-
-## Getting Started
-
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/developing-packages/),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
-
-For help getting started with Flutter, view our 
-[online documentation](https://flutter.dev/docs), which offers tutorials, 
-samples, guidance on mobile development, and a full API reference.

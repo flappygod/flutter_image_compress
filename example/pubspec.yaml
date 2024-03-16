@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutterimagecompress:
+  flutter_img_compress:
     # When depending on this package from a real application you should use:
     #   flutterimagecompress: ^x.y.z
     # See https://dart.dev/tools/pub/dependencies#version-constraints

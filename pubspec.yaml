@@ -1,7 +1,6 @@
-name: flutterimagecompress
+name: flutter_img_compress
 description: A new Flutter plugin.
 version: 0.0.1
-author:
 homepage:
 
 environment:

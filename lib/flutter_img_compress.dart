@@ -1,11 +1,11 @@
 import 'package:flutter/services.dart';
-import 'dart:typed_data';
 import 'dart:async';
 
 //compress image
-class Flutterimagecompress {
+class FlutterImageCompress {
   ///channel
-  static const MethodChannel _channel = const MethodChannel('flutterimagecompress');
+  static const MethodChannel _channel =
+      const MethodChannel('flutter_img_compress');
 
   ///compress and saved to
   static Future<String?> compressImageToSavePath(String path, String savePath,
@@ -29,7 +29,8 @@ class Flutterimagecompress {
   }
 
   ///compress image and return path
-  static Future<String?> compressImage(String path, {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
+  static Future<String?> compressImage(String path,
+      {int? quality, int? maxWidth, int? maxHeight, int? maxSize}) async {
     //file
     String currentPath = path;
     //file
@@ -50,7 +51,8 @@ class Flutterimagecompress {
 
   ///default compress path
   static Future<String?> getCompressDefaultPath() async {
-    final String? ret = await _channel.invokeMethod('getCompressDefaultPath', {});
+    final String? ret =
+        await _channel.invokeMethod('getCompressDefaultPath', {});
     return ret;
   }
 
@@ -61,7 +63,8 @@ class Flutterimagecompress {
   }
 
   ///save image
-  static Future<String?> saveImage(Uint8List imageData, String savePath, String imageName) async {
+  static Future<String?> saveImage(
+      Uint8List imageData, String savePath, String imageName) async {
     try {
       String? path = await _channel.invokeMethod('saveImage', {
         "imageData": imageData,

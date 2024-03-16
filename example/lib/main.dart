@@ -1,8 +1,7 @@
+import 'package:flutter_img_compress/flutter_img_compress.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-
-import 'package:flutter/services.dart';
-import 'package:flutterimagecompress/flutterimagecompress.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,7 +26,7 @@ class _MyAppState extends State<MyApp> {
     String? platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      platformVersion=await Flutterimagecompress.getCompressDefaultPath();
+      platformVersion = await FlutterImageCompress.getCompressDefaultPath();
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }

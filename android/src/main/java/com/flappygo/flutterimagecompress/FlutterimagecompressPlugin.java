@@ -68,7 +68,7 @@ public class FlutterimagecompressPlugin implements FlutterPlugin, MethodCallHand
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
         this.context = flutterPluginBinding.getApplicationContext();
-        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutterimagecompress");
+        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "flutter_img_compress");
         channel.setMethodCallHandler(this);
     }
 

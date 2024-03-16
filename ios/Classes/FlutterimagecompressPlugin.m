@@ -4,7 +4,7 @@
 @implementation FlutterimagecompressPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     FlutterMethodChannel* channel = [FlutterMethodChannel
-                                     methodChannelWithName:@"flutterimagecompress"
+                                     methodChannelWithName:@"flutter_img_compress"
                                      binaryMessenger:[registrar messenger]];
     FlutterimagecompressPlugin* instance = [[FlutterimagecompressPlugin alloc] init];
     [registrar addMethodCallDelegate:instance channel:channel];
