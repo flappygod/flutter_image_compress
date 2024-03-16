@@ -1,3 +1,3 @@
-## 1.0.0
+## 1.0.1
 
-* Publish this project to pub.
+* Fix a bug that can't build on ios.
