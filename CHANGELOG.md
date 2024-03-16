@@ -1,3 +1,3 @@
-## 1.0.1
+## 1.0.2
 
-* Fix a bug that can't build on ios.
+* Add description of this plugin.
