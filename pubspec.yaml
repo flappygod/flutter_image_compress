@@ -1,6 +1,6 @@
 name: flutter_img_compress
 description: "This is a plugin compress your image to a expected size,And also you can use this plugin to save image to the album or dictionary."
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/flappygod/flutter_image_compress
 
 environment:

@@ -1,3 +1,3 @@
-## 1.0.2
+## 1.0.3
 
-* Add description of this plugin.
+* Remove unnecessary code to adapt 3.9.0

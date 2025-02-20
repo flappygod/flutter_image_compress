@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/flutter_img_compress.iml" filepath="$PROJECT_DIR$/flutter_img_compress.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/flutter_img_compress_android.iml" filepath="$PROJECT_DIR$/android/flutter_img_compress_android.iml" />
       <module fileurl="file://$PROJECT_DIR$/android/flutterimagecompress_android.iml" filepath="$PROJECT_DIR$/android/flutterimagecompress_android.iml" />
       <module fileurl="file://$PROJECT_DIR$/example/android/flutterimagecompress_example_android.iml" filepath="$PROJECT_DIR$/example/android/flutterimagecompress_example_android.iml" />
     </modules>
