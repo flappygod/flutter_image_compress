@@ -108,57 +108,8 @@
     else if([@"getCacheDefaultPath" isEqualToString:call.method]){
         result([self getCacheDefaultPath]);
     }
-    //save to
-    else if([@"saveImage" isEqualToString:call.method]){
-        //image data
-        FlutterStandardTypedData *imageData = call.arguments[@"imageData"];
-        //image name
-        NSString* imageName=(NSString*)call.arguments[@"imageName"];
-        //savePath
-        NSString* savePath=(NSString*)call.arguments[@"savePath"];
-        //trueImage
-        UIImage *trueImage  = [UIImage imageWithData:imageData.data];
-        if(savePath==nil||[savePath isEqualToString:@""]){
-            savePath=[self getCompressDefaultPath];
-        }
-        if(![savePath hasSuffix:@"/"]){
-            savePath=[NSString stringWithFormat:@"%@/",savePath];
-        }
-        NSFileManager *fileManager = [NSFileManager defaultManager];
-        BOOL isDir = FALSE;
-        BOOL isDirExist = [fileManager fileExistsAtPath:savePath
-                                            isDirectory:&isDir];
-        if(isDirExist){
-            if(!isDir){
-                savePath=[self getCompressDefaultPath];
-                [fileManager createDirectoryAtPath:savePath
-                       withIntermediateDirectories:YES
-                                        attributes:nil
-                                             error:nil];
-
-            }
-        }else{
-            [fileManager createDirectoryAtPath:savePath
-                   withIntermediateDirectories:YES
-                                    attributes:nil
-                                         error:nil];
-        }
-
-        NSString* truePath=[NSString stringWithFormat:@"%@%@",savePath,imageName];
-
-        //save
-        NSException* exception=[self saveToDocument:trueImage
-                                       withFilePath:truePath];
-        if(exception==nil){
-            result(truePath);
-        }else{
-            result([FlutterError  errorWithCode:exception.name message:exception.reason details:nil]);
-        }
-    }
-
     //save to phone
     else if ([@"saveImageToPhotos" isEqualToString:call.method]) {
-
         [self isCanVisitPhotoLibrary:^(BOOL status){
             if(status){
                 FlutterStandardTypedData *imageData = call.arguments[@"imageData"];

@@ -1,3 +1,3 @@
-## 1.0.3
+## 1.0.4
 
-* Remove unnecessary code to adapt 3.9.0
+* Change saveImage method

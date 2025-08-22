@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class FlutterImgCompress {
@@ -59,19 +62,27 @@ class FlutterImgCompress {
     return ret;
   }
 
-  ///save image
+  /// Save image to the specified path
   static Future<String?> saveImage(
-      Uint8List imageData, String savePath, String imageName) async {
-    try {
-      String? path = await _channel.invokeMethod('saveImage', {
-        "imageData": imageData,
-        "imageName": imageName,
-        "savePath": savePath,
-      });
-      return path;
-    } on PlatformException {
-      rethrow;
+    Uint8List imageData,
+    String savePath,
+    String imageName,
+  ) async {
+    //Ensure the directory exists
+    final directory = Directory(savePath);
+    if (!directory.existsSync()) {
+      await directory.create(recursive: true);
     }
+
+    //Create the full file path
+    final filePath = '$savePath/$imageName';
+
+    //Write the image data to the file
+    final file = File(filePath);
+    await file.writeAsBytes(imageData);
+
+    //Return the file path if successful
+    return filePath;
   }
 
   ///save image to photos
